@@ -23,10 +23,13 @@ jobs:
         run: npm ci
 
       - name: Build Windows App
-        run: npm run make
+        run: npm run package && npm run make
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
           name: windows-app
-          path: out/make/**/*
+          path: |
+            out/make/squirrel.windows/x64/*.exe
+            out/make/squirrel.windows/x64/*.nupkg
+            out/make/squirrel.windows/x64/RELEASES
