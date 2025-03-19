@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>T3 Chat</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+      }
+      #titlebar {
+        height: 32px;
+        background: #1b1419;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        -webkit-app-region: drag;
+        user-select: none;
+      }
+      .title {
+        color: #ffffff;
+        margin-left: 12px;
+        font-size: 12px;
+      }
+      .window-controls {
+        display: flex;
+        -webkit-app-region: no-drag;
+      }
+      .window-controls button {
+        width: 46px;
+        height: 32px;
+        border: none;
+        background: transparent;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      .window-controls button:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+      #close-btn:hover {
+        background: #e81123;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="titlebar">
+      <div class="title">T3 Chat</div>
+      <div class="window-controls">
+        <button id="min-btn">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <line x1="8" x2="16" y1="12" y2="12" />
+          </svg>
+        </button>
+        <button id="max-btn">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="15 3 21 3 21 9" />
+            <polyline points="9 21 3 21 3 15" />
+            <line x1="21" x2="14" y1="3" y2="10" />
+            <line x1="3" x2="10" y1="21" y2="14" />
+          </svg>
+        </button>
+        <button id="close-btn">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+    <webview
+      src="https://t3.chat"
+      style="width: 100%; height: calc(100vh - 32px)"
+    ></webview>
+    <script>
+      const { ipcRenderer } = require("electron");
+      document.getElementById("min-btn").addEventListener("click", () => {
+        ipcRenderer.send("window-control", "minimize");
+      });
+      const maxBtn = document.getElementById("max-btn");
+      const maxBtnSvg = maxBtn.querySelector("svg");
+
+      function updateMaximizeButton(isMaximized) {
+        if (isMaximized) {
+          maxBtnSvg.innerHTML = `
+            <polyline points="4 14 10 14 10 20"/>
+            <polyline points="20 10 14 10 14 4"/>
+            <line x1="14" x2="21" y1="10" y2="3"/>
+            <line x1="3" x2="10" y1="21" y2="14"/>
+          `;
+        } else {
+          maxBtnSvg.innerHTML = `
+            <polyline points="15 3 21 3 21 9"/>
+            <polyline points="9 21 3 21 3 15"/>
+            <line x1="21" x2="14" y1="3" y2="10"/>
+            <line x1="3" x2="10" y1="21" y2="14"/>
+          `;
+        }
+      }
+
+      maxBtn.addEventListener("click", () => {
+        ipcRenderer.send("window-control", "maximize");
+      });
+
+      ipcRenderer.on("window-state-change", (event, isMaximized) => {
+        updateMaximizeButton(isMaximized);
+      });
+      document.getElementById("close-btn").addEventListener("click", () => {
+        ipcRenderer.send("window-control", "close");
+      });
+
+      // on title update in webview, update titlebar
+      document.addEventListener("DOMContentLoaded", () => {
+        const webview = document.querySelector("webview");
+        webview.addEventListener("page-title-updated", (event) => {
+          document.querySelector(".title").textContent = event.title;
+          document.title = event.title;
+        });
+      });
+    </script>
+  </body>
+</html>
